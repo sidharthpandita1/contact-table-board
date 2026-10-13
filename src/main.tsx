@@ -1,14 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { AppProviders } from './AppProviders'
 import { seedContacts } from './data/contacts'
 import './index.css'
-import { ContactsProvider } from './store/ContactsProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ContactsProvider initialContacts={seedContacts}>
+    <AppProviders contacts={seedContacts}>
       <App />
-    </ContactsProvider>
+    </AppProviders>
   </StrictMode>,
 )

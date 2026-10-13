@@ -1,27 +1,32 @@
-import type { Stage } from './types'
+/** Small deterministic hash so a name always gets the same hue. */
+function hash(text: string): number {
+  let h = 0
+  for (const ch of text) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  return h
+}
 
-/**
- * Colour is reserved for Stage, the field the board groups by. Labels stay neutral so
- * they never compete with it. Text shades are a step darker than Notion's pastels,
- * which fall below 4.5:1 contrast at 12px.
- */
-export const STAGE_STYLES: Record<Stage, { chip: string; dot: string }> = {
-  Lead: { chip: 'bg-stone-100 text-stone-700', dot: 'bg-stone-400' },
-  Prospect: { chip: 'bg-sky-50 text-sky-800', dot: 'bg-sky-500' },
-  Qualified: { chip: 'bg-amber-50 text-amber-800', dot: 'bg-amber-500' },
-  Customer: { chip: 'bg-emerald-50 text-emerald-800', dot: 'bg-emerald-500' },
+/** Hues that stay clean in OKLCH at low chroma (no muddy yellow-greens). */
+const HUES = [18, 42, 150, 178, 205, 232, 262, 290, 322, 350]
+
+export function hueFor(text: string): number {
+  return HUES[hash(text) % HUES.length]
 }
 
 /**
- * Owners are a small known team, so each gets a fixed tint and reads the same everywhere.
- * In a real product this would come from the user's profile; unknown names fall back to neutral.
+ * Owners are a small known team, so each gets a fixed hue and reads the same everywhere.
+ * In a real product this would come from the user's profile.
  */
-const TEAM_TINTS: Record<string, string> = {
-  'Sam Lee': 'bg-violet-100 text-violet-800',
-  'Ravi Nair': 'bg-teal-100 text-teal-800',
-  'Jess Park': 'bg-rose-100 text-rose-800',
+const TEAM_HUES: Record<string, number> = {
+  'Sam Lee': 290,
+  'Ravi Nair': 178,
+  'Jess Park': 18,
 }
 
-export function ownerTint(owner: string): string {
-  return TEAM_TINTS[owner] ?? 'bg-neutral-200 text-neutral-700'
+export function ownerHue(owner: string): number {
+  return TEAM_HUES[owner] ?? hueFor(owner)
+}
+
+/** Label dots: small colour cue, chip itself stays neutral so Stage keeps the colour. */
+export function labelHue(label: string): number {
+  return hueFor(label)
 }
