@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useUpdateContact } from '../store/hooks'
+import { playSound } from './sound'
 import type { Contact, ContactPatch, EditableField } from '../types'
 import {
   KEEP_EDITING_ID,
@@ -51,6 +52,8 @@ export function useDetailsPanel(byId: Record<string, Contact>, { onSaved }: Opti
   const isDirty = Object.keys(patch).length > 0
 
   function show(id: string) {
+    // A surface arriving gets a sound; swapping records inside an open panel stays quiet.
+    if (openId === null) playSound('open')
     flushSync(() => {
       setOpenId(id)
       setDraft({})
@@ -59,8 +62,10 @@ export function useDetailsPanel(byId: Record<string, Contact>, { onSaved }: Opti
     focusById(PANEL_TITLE_ID)
   }
 
-  function hide(changes?: ContactPatch) {
+  /** `silent` when a discard cue has already played for this exit. */
+  function hide(changes?: ContactPatch, { silent = false } = {}) {
     if (!contact) return
+    if (!silent) playSound(changes ? 'success' : 'close')
     const id = contact.id
     const active = document.activeElement
     const focusWasInPanel =
@@ -84,6 +89,7 @@ export function useDetailsPanel(byId: Record<string, Contact>, { onSaved }: Opti
   }
 
   function askFirst(exit: PendingExit) {
+    playSound('warning')
     flushSync(() => setPendingExit(exit))
     focusById(KEEP_EDITING_ID)
   }
@@ -115,11 +121,13 @@ export function useDetailsPanel(byId: Record<string, Contact>, { onSaved }: Opti
   }
 
   function discard() {
+    playSound('destructive')
     if (pendingExit?.kind === 'switch') show(pendingExit.toId)
-    else hide()
+    else hide(undefined, { silent: true })
   }
 
   function keepEditing() {
+    playSound('press')
     flushSync(() => setPendingExit(null))
     focusById(fieldId(lastEdited))
   }

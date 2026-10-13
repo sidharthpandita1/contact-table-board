@@ -1,6 +1,7 @@
 import { Check, Copy } from 'lucide-react'
 import { AnimatePresence, m } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { playSound } from '../lib/sound'
 
 /** Icon swaps to a check with a short blur crossfade, then back. */
 export function CopyButton({ text, label }: { text: string; label: string }) {
@@ -15,6 +16,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(text)
+      playSound('copy')
       setCopied(true)
     } catch {
       // Clipboard can be blocked (permissions, insecure context). The text stays selectable.

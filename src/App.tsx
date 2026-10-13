@@ -15,6 +15,7 @@ import { DetailsPanel, Scrim, type PanelPosition } from './components/DetailsPan
 import { OwnerFilter } from './components/OwnerFilter'
 import { PipelineBar } from './components/PipelineBar'
 import { SearchField } from './components/SearchField'
+import { SoundToggle } from './components/SoundToggle'
 import { TableView } from './components/TableView'
 import { Toast, type ToastMessage } from './components/Toast'
 import { ViewSwitcher } from './components/ViewSwitcher'
@@ -28,6 +29,7 @@ import {
   type ContactFilter,
 } from './lib/filter'
 import { EASE_OUT } from './lib/motion'
+import { playSound } from './lib/sound'
 import { useDetailsPanel } from './lib/useDetailsPanel'
 import { useMediaQuery } from './lib/useMediaQuery'
 import { useViewParam } from './lib/useViewParam'
@@ -71,6 +73,10 @@ export default function App() {
     })
   }, [])
   const dismissToast = useCallback(() => setToast(null), [])
+  const closeToast = useCallback(() => {
+    playSound('close', { volume: 0.7 })
+    setToast(null)
+  }, [])
 
   const panel = useDetailsPanel(byId, { onSaved: showToast })
   const openId = panel.contact?.id ?? null
@@ -85,7 +91,9 @@ export default function App() {
   /** One commit path for drag-and-drop and Alt+Shift+Arrow: immediate, highlighted, undoable. */
   function moveContact(id: string, stage: Stage, via: 'drag' | 'keyboard') {
     const before = byId[id]
-    if (!before || before.stage === stage || id === lockedId) return
+    if (!before || before.stage === stage) return
+    if (id === lockedId) return playSound('blocked')
+    playSound('success')
     const hadFocus = !!document.activeElement?.closest(`[data-record-id="${CSS.escape(id)}"]`)
     const patch = { stage }
     flushSync(() => {
@@ -109,9 +117,11 @@ export default function App() {
     e.preventDefault()
     const next = STAGES[STAGES.indexOf(contact.stage) + (e.key === 'ArrowRight' ? 1 : -1)]
     if (next) moveContact(contact.id, next, 'keyboard')
+    else playSound('blocked') // already at the start or end of the pipeline
   }
 
   function undo({ contactId, undo }: ToastMessage) {
+    playSound('undo')
     flushSync(() => {
       updateContact(contactId, undo)
       setToast(null)
@@ -148,7 +158,10 @@ export default function App() {
   }
 
   const overlayOpen = panel.contact !== null && !docked
-  const clearFilters = () => setFilter(EMPTY_FILTER)
+  const clearFilters = () => {
+    playSound('clear')
+    setFilter(EMPTY_FILTER)
+  }
 
   return (
     <div className="flex h-full p-2">
@@ -170,7 +183,11 @@ export default function App() {
               {filtering ? `${contacts.length} of ${allContacts.length}` : allContacts.length}
             </span>
           </div>
-          <PipelineBar counts={stageCounts} />
+          <div className="flex items-center gap-3">
+            <PipelineBar counts={stageCounts} />
+            <span aria-hidden="true" className="h-5 w-px bg-hairline-strong" />
+            <SoundToggle />
+          </div>
         </header>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline px-5 pb-3">
@@ -228,7 +245,7 @@ export default function App() {
           </m.div>
         </main>
 
-        <Toast toast={toast} onUndo={undo} onDismiss={dismissToast} />
+        <Toast toast={toast} onUndo={undo} onDismiss={dismissToast} onClose={closeToast} />
       </div>
 
       <AnimatePresence>

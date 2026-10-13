@@ -1,6 +1,7 @@
 import { Search, X } from 'lucide-react'
 import type { Ref } from 'react'
 import { SEARCH_ID } from '../lib/dom'
+import { playSound } from '../lib/sound'
 import { Kbd } from './Kbd'
 
 interface SearchFieldProps {
@@ -11,6 +12,11 @@ interface SearchFieldProps {
 
 /** Press "/" anywhere to focus. Esc clears, then blurs. */
 export function SearchField({ value, onChange, ref }: SearchFieldProps) {
+  function clear() {
+    playSound('clear')
+    onChange('')
+  }
+
   return (
     <div className="relative w-full max-w-60 min-w-36">
       <Search
@@ -26,7 +32,7 @@ export function SearchField({ value, onChange, ref }: SearchFieldProps) {
         onKeyDown={(e) => {
           if (e.key !== 'Escape') return
           e.preventDefault() // keep Esc from also closing the details panel
-          if (value) onChange('')
+          if (value) clear()
           else e.currentTarget.blur()
         }}
         placeholder="Search contacts"
@@ -40,7 +46,7 @@ export function SearchField({ value, onChange, ref }: SearchFieldProps) {
           <button
             type="button"
             aria-label="Clear search"
-            onClick={() => onChange('')}
+            onClick={clear}
             className="inline-flex size-5 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-900/[0.06] hover:text-neutral-900"
           >
             <X aria-hidden="true" className="size-3.5" />

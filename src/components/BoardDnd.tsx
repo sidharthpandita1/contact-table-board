@@ -1,6 +1,7 @@
 import { Accessibility, PointerActivationConstraints, PointerSensor } from '@dnd-kit/dom'
 import { DragDropProvider } from '@dnd-kit/react'
 import type { ReactNode } from 'react'
+import { playSound } from '../lib/sound'
 import { isStage, type Stage } from '../types'
 
 /**
@@ -41,6 +42,7 @@ export function BoardDnd({ onMove, children }: BoardDndProps) {
     <DragDropProvider
       sensors={sensors}
       plugins={(defaults) => defaults.filter((plugin) => plugin !== Accessibility)}
+      onDragStart={() => playSound('pickup')}
       onDragEnd={({ canceled, operation: { source, target } }) => {
         swallowNextClick()
         const stage = target ? String(target.id) : ''

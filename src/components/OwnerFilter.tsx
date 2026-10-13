@@ -3,6 +3,7 @@ import { AnimatePresence, m, useReducedMotion } from 'motion/react'
 import { cn } from '../lib/cn'
 import { UNASSIGNED } from '../lib/filter'
 import { EASE_OUT } from '../lib/motion'
+import { playSound } from '../lib/sound'
 import { ownerHue } from '../theme'
 import { Avatar } from './Avatar'
 
@@ -22,8 +23,11 @@ export function OwnerFilter({ options, selected, onChange }: OwnerFilterProps) {
   const reduce = useReducedMotion()
   const isOn = (value: string) => selected.includes(value)
 
+  /** Direction carries the state: on rises, off falls. */
   function toggle(value: string) {
-    onChange(isOn(value) ? selected.filter((v) => v !== value) : [...selected, value])
+    const on = isOn(value)
+    playSound(on ? 'toggleOff' : 'toggleOn')
+    onChange(on ? selected.filter((v) => v !== value) : [...selected, value])
   }
 
   return (
@@ -78,7 +82,10 @@ export function OwnerFilter({ options, selected, onChange }: OwnerFilterProps) {
         {selected.length > 0 && (
           <m.button
             type="button"
-            onClick={() => onChange([])}
+            onClick={() => {
+              playSound('clear')
+              onChange([])
+            }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.12 } }}

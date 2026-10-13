@@ -2,6 +2,7 @@ import { LayoutGroup, m } from 'motion/react'
 import { useRef, type KeyboardEvent } from 'react'
 import { cn } from '../lib/cn'
 import { SNAPPY } from '../lib/motion'
+import { PITCH_STEPS, playSound } from '../lib/sound'
 import { STAGES, type Stage } from '../types'
 
 interface StageStepperProps {
@@ -21,6 +22,13 @@ export function StageStepper({ value, onChange, id, labelledBy }: StageStepperPr
   const radios = useRef(new Map<Stage, HTMLButtonElement>())
   const current = STAGES.indexOf(value)
 
+  /** Pitched by place: the further along the pipeline, the higher the note. */
+  function choose(stage: Stage) {
+    if (stage === value) return
+    playSound('select', { detune: PITCH_STEPS[STAGES.indexOf(stage)] })
+    onChange(stage)
+  }
+
   function onKeyDown(e: KeyboardEvent) {
     const delta =
       e.key === 'ArrowRight' || e.key === 'ArrowDown'
@@ -31,7 +39,7 @@ export function StageStepper({ value, onChange, id, labelledBy }: StageStepperPr
     if (!delta) return
     e.preventDefault()
     const next = STAGES[(current + delta + STAGES.length) % STAGES.length]
-    onChange(next)
+    choose(next)
     radios.current.get(next)?.focus()
   }
 
@@ -58,7 +66,7 @@ export function StageStepper({ value, onChange, id, labelledBy }: StageStepperPr
               id={checked ? id : undefined}
               aria-checked={checked}
               tabIndex={checked ? 0 : -1}
-              onClick={() => onChange(stage)}
+              onClick={() => choose(stage)}
               data-tone={stage}
               className={cn(
                 'relative isolate flex h-8 min-w-0 items-center justify-center gap-1.5 rounded-[7px] px-1 text-[12.5px] font-medium transition-colors duration-150',

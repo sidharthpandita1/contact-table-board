@@ -4,6 +4,7 @@ import { useRef, type KeyboardEvent } from 'react'
 import { cn } from '../lib/cn'
 import { VIEW_PANEL_ID, tabId } from '../lib/dom'
 import { SNAPPY } from '../lib/motion'
+import { PITCH_STEPS, playSound } from '../lib/sound'
 import type { ViewMode } from '../types'
 
 const VIEWS = [
@@ -24,6 +25,13 @@ interface ViewSwitcherProps {
 export function ViewSwitcher({ value, onChange }: ViewSwitcherProps) {
   const tabs = useRef(new Map<ViewMode, HTMLButtonElement>())
 
+  /** Each view has its own pitch, so the sound says which one you landed on. */
+  function choose(view: ViewMode) {
+    if (view === value) return
+    playSound('select', { detune: PITCH_STEPS[VIEWS.findIndex((v) => v.id === view)] })
+    onChange(view)
+  }
+
   function onKeyDown(e: KeyboardEvent) {
     const current = VIEWS.findIndex((v) => v.id === value)
     const next =
@@ -39,7 +47,7 @@ export function ViewSwitcher({ value, onChange }: ViewSwitcherProps) {
     if (next === null) return
     e.preventDefault()
     const id = VIEWS[next].id
-    onChange(id)
+    choose(id)
     tabs.current.get(id)?.focus()
   }
 
@@ -66,7 +74,7 @@ export function ViewSwitcher({ value, onChange }: ViewSwitcherProps) {
               aria-selected={selected}
               aria-controls={VIEW_PANEL_ID}
               tabIndex={selected ? 0 : -1}
-              onClick={() => onChange(id)}
+              onClick={() => choose(id)}
               className={cn(
                 'relative isolate inline-flex h-[26px] items-center gap-1.5 rounded-[7px] px-2.5 text-[13px] font-medium transition-colors duration-150',
                 selected ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-800',

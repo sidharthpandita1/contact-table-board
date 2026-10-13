@@ -18,7 +18,10 @@ export interface ToastMessage extends SaveSummary {
 interface ToastProps {
   toast: ToastMessage | null
   onUndo: (toast: ToastMessage) => void
+  /** Timer ran out: silent. */
   onDismiss: () => void
+  /** The close button: plays a cue. */
+  onClose: () => void
 }
 
 const DURATION_MS = 6000
@@ -27,7 +30,7 @@ const DURATION_MS = 6000
  * Secondary feedback after a save or drop. The row or card highlight is the primary signal.
  * The live region stays mounted so screen readers announce each new message.
  */
-export function Toast({ toast, onUndo, onDismiss }: ToastProps) {
+export function Toast({ toast, onUndo, onDismiss, onClose }: ToastProps) {
   return (
     <div
       role="status"
@@ -35,14 +38,22 @@ export function Toast({ toast, onUndo, onDismiss }: ToastProps) {
       className="pointer-events-none absolute inset-x-0 bottom-4 z-[60] flex justify-center px-4"
     >
       <AnimatePresence mode="popLayout">
-        {toast && <ToastBody key={toast.key} toast={toast} onUndo={onUndo} onDismiss={onDismiss} />}
+        {toast && (
+          <ToastBody
+            key={toast.key}
+            toast={toast}
+            onUndo={onUndo}
+            onDismiss={onDismiss}
+            onClose={onClose}
+          />
+        )}
       </AnimatePresence>
     </div>
   )
 }
 
 /** Keyed per message, so the pause state and timer never leak from one toast to the next. */
-function ToastBody({ toast, onUndo, onDismiss }: ToastProps & { toast: ToastMessage }) {
+function ToastBody({ toast, onUndo, onDismiss, onClose }: ToastProps & { toast: ToastMessage }) {
   const present = useIsPresent()
   const [paused, setPaused] = useState(false)
 
@@ -98,7 +109,7 @@ function ToastBody({ toast, onUndo, onDismiss }: ToastProps & { toast: ToastMess
         </button>
         <button
           type="button"
-          onClick={onDismiss}
+          onClick={onClose}
           aria-label="Dismiss"
           className="inline-flex size-7 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-900/[0.05] hover:text-neutral-800"
         >
