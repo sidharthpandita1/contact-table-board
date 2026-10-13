@@ -1,9 +1,10 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { AppProviders } from './AppProviders'
 import { seedContacts } from './data/contacts'
+import { resetColumnWidths } from './lib/columns'
 
 function setup(path = '/') {
   window.history.replaceState(null, '', path)
@@ -198,5 +199,72 @@ describe('search and filters', () => {
     expect(screen.getByText('No contacts match')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Clear filters' }))
     expect(screen.getAllByRole('row')).toHaveLength(11)
+  })
+})
+
+describe('resizing columns', () => {
+  beforeEach(() => resetColumnWidths())
+
+  const handle = (column: string) =>
+    screen.getByRole('separator', { name: `Resize ${column} column` })
+  const width = (column: string) => Number(handle(column).getAttribute('aria-valuenow'))
+
+  it('exposes a labelled handle per column, with its width in pixels', () => {
+    setup()
+    expect(screen.getAllByRole('separator')).toHaveLength(8)
+    expect(handle('Company')).toHaveAttribute('aria-valuetext', '208 pixels')
+    expect(handle('Company')).toHaveAttribute('aria-valuemin', '120')
+    expect(handle('Company')).toHaveAttribute('aria-valuemax', '420')
+  })
+
+  it('arrow keys step by 8px, Shift by 32px, Home and End jump to the limits', async () => {
+    const { user } = setup()
+    handle('Company').focus()
+    await user.keyboard('{ArrowRight}')
+    expect(width('Company')).toBe(216)
+    await user.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    expect(width('Company')).toBe(184)
+    await user.keyboard('{Home}')
+    expect(width('Company')).toBe(120)
+    await user.keyboard('{End}')
+    expect(width('Company')).toBe(420)
+  })
+
+  it('Esc reverts the width without closing the panel; Esc again closes it', async () => {
+    const { user } = setup()
+    await user.click(screen.getByRole('button', { name: 'Priya Menon' }))
+    handle('Role').focus()
+    await user.keyboard('{ArrowRight}{ArrowRight}')
+    expect(width('Role')).toBe(212)
+
+    await user.keyboard('{Escape}')
+    expect(width('Role')).toBe(196)
+    expect(panel()).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(panel()).not.toBeInTheDocument())
+  })
+
+  it('keeps widths across a switch to the board and back', async () => {
+    const { user } = setup()
+    handle('Notes').focus()
+    await user.keyboard('{Shift>}{ArrowRight}{/Shift}')
+    await user.click(screen.getByRole('tab', { name: 'Board' }))
+    await user.click(screen.getByRole('tab', { name: 'Table' }))
+    expect(width('Notes')).toBe(352)
+  })
+
+  it('offers Reset columns once a width changes, and it restores the defaults', async () => {
+    const { user } = setup()
+    expect(screen.queryByRole('button', { name: 'Reset columns' })).not.toBeInTheDocument()
+    handle('Email').focus()
+    await user.keyboard('{ArrowLeft}')
+
+    await user.click(screen.getByRole('button', { name: 'Reset columns' }))
+    expect(width('Email')).toBe(260)
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Reset columns' })).not.toBeInTheDocument(),
+    )
+    expect(screen.getByText('Column widths reset')).toHaveAttribute('role', 'status')
   })
 })

@@ -4,6 +4,7 @@ export const PANEL_TITLE_ID = 'details-panel-title'
 export const KEEP_EDITING_ID = 'details-keep-editing'
 export const VIEW_PANEL_ID = 'view-panel'
 export const SEARCH_ID = 'contact-search'
+export const TABLE_REGION_ID = 'contacts-table'
 
 /** Only one view is mounted at a time, so the table row and the board card share an id. */
 export const openButtonId = (contactId: string) => `open-${contactId}`

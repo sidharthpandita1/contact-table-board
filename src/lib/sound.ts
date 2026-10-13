@@ -33,6 +33,8 @@ export type Cue =
   | 'undo'
   | 'copy' // two clicks, like a shutter
   | 'clear' // emptying a field or a filter
+  | 'limit' // a column edge reaching its minimum or maximum: the quietest, lowest tick
+  | 'fit' // a column gliding to fit its content, or back to its default
   | 'unmute'
 
 const CUES: Record<Exclude<Cue, 'blocked'>, { sound: string; volume?: number; detune?: number }> = {
@@ -49,6 +51,8 @@ const CUES: Record<Exclude<Cue, 'blocked'>, { sound: string; volume?: number; de
   undo: { sound: 'undo' },
   copy: { sound: 'copy' },
   clear: { sound: 'deselect' },
+  limit: { sound: 'click', volume: 0.6, detune: -700 },
+  fit: { sound: 'slide' },
   unmute: { sound: 'swoosh' },
 }
 

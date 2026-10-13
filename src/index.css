@@ -107,3 +107,14 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* While a column edge is dragged, the pointer is captured by a handle it has already left: lock
+   the cursor and selection page-wide, and keep rows from lighting up or taking the click. */
+html[data-col-resizing],
+html[data-col-resizing] * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+html[data-col-resizing] tbody {
+  pointer-events: none;
+}

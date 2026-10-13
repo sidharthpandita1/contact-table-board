@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react'
+import { RotateCcw, Users } from 'lucide-react'
 import { AnimatePresence, m } from 'motion/react'
 import {
   useCallback,
@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { flushSync } from 'react-dom'
 import { BoardView } from './components/BoardView'
+import { Button } from './components/Button'
 import { DetailsPanel, Scrim, type PanelPosition } from './components/DetailsPanel'
 import { OwnerFilter } from './components/OwnerFilter'
 import { PipelineBar } from './components/PipelineBar'
@@ -20,7 +21,16 @@ import { TableView } from './components/TableView'
 import { Toast, type ToastMessage } from './components/Toast'
 import { ViewSwitcher } from './components/ViewSwitcher'
 import { describeSave, undoPatch } from './lib/describeSave'
-import { VIEW_PANEL_ID, flashRecord, focusById, isEditable, openButtonId, tabId } from './lib/dom'
+import { isCustomized, resetColumnWidths, useColumnWidths } from './lib/columns'
+import {
+  TABLE_REGION_ID,
+  VIEW_PANEL_ID,
+  flashRecord,
+  focusById,
+  isEditable,
+  openButtonId,
+  tabId,
+} from './lib/dom'
 import {
   EMPTY_FILTER,
   isFiltering,
@@ -50,6 +60,8 @@ export default function App() {
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const [droppedId, setDroppedId] = useState<string | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  const columnsCustomized = isCustomized(useColumnWidths())
+  const [status, setStatus] = useState('')
 
   // Everything below is derived from the one store. Nothing is copied into view state.
   const contacts = useMemo(
@@ -157,6 +169,14 @@ export default function App() {
     nextId: index >= 0 && index < ordered.length - 1 ? ordered[index + 1].id : null,
   }
 
+  function resetColumns() {
+    playSound('fit')
+    resetColumnWidths() // the table glides back; see useColumnSizing
+    setStatus('Column widths reset')
+    // This button is about to leave; keep focus in the table it changed.
+    if (document.activeElement?.closest('[data-reset-columns]')) focusById(TABLE_REGION_ID)
+  }
+
   const overlayOpen = panel.contact !== null && !docked
   const clearFilters = () => {
     playSound('clear')
@@ -198,7 +218,25 @@ export default function App() {
             selected={filter.owners}
             onChange={(owners) => setFilter((f) => ({ ...f, owners }))}
           />
-          <div className="ml-auto flex min-w-36 flex-1 justify-end">
+          <div className="ml-auto flex min-w-36 flex-1 items-center justify-end gap-2">
+            <AnimatePresence initial={false}>
+              {view === 'table' && columnsCustomized && (
+                <m.div
+                  key="reset-columns"
+                  data-reset-columns
+                  initial={{ opacity: 0, scale: 0.9, filter: 'blur(2px)' }}
+                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, scale: 0.9, filter: 'blur(2px)' }}
+                  transition={{ duration: 0.18, ease: EASE_OUT }}
+                >
+                  <Button variant="ghost" onClick={resetColumns} className="px-2.5">
+                    <RotateCcw aria-hidden="true" className="size-3.5" />
+                    {/* Icon only when the card is narrow, still named for screen readers. */}
+                    <span className="sr-only @4xl:not-sr-only">Reset columns</span>
+                  </Button>
+                </m.div>
+              )}
+            </AnimatePresence>
             <SearchField
               ref={searchRef}
               value={filter.query}
@@ -245,6 +283,9 @@ export default function App() {
           </m.div>
         </main>
 
+        <p role="status" className="sr-only">
+          {status}
+        </p>
         <Toast toast={toast} onUndo={undo} onDismiss={dismissToast} onClose={closeToast} />
       </div>
 
