@@ -6,6 +6,7 @@ import {
   KEEP_EDITING_ID,
   PANEL_ID,
   PANEL_TITLE_ID,
+  VIEW_PANEL_ID,
   fieldId,
   flashRecord,
   focusById,
@@ -73,8 +74,9 @@ export function useDetailsPanel(byId: Record<string, Contact>, { onSaved }: Opti
     })
 
     // Return focus to the row or card that represents this record in whichever view is
-    // showing now. If the user had already moved focus elsewhere, leave it there.
-    if (focusWasInPanel) focusById(openButtonId(id))
+    // showing now (a search may have hidden it: fall back to the view itself). If the user
+    // had already moved focus elsewhere, leave it there.
+    if (focusWasInPanel && !focusById(openButtonId(id))) focusById(VIEW_PANEL_ID)
     if (changes) {
       flashRecord(id)
       onSaved?.(contact, changes)

@@ -1,11 +1,24 @@
-import type { Contact, ContactPatch } from '../types'
+import type { Contact, ContactPatch, Stage } from '../types'
+
+export interface SaveSummary {
+  /** Plain sentence for screen readers and tests. */
+  text: string
+  name: string
+  stage?: Stage
+  notesUpdated: boolean
+}
 
 /** Toast copy for a save. Past tense, names the record, names the new stage. */
-export function describeSave(before: Contact, patch: ContactPatch): string {
-  const notesChanged = patch.notes !== undefined
-  if (patch.stage && notesChanged) return `Moved ${before.name} to ${patch.stage} and updated notes`
-  if (patch.stage) return `Moved ${before.name} to ${patch.stage}`
-  return `Updated notes for ${before.name}`
+export function describeSave(before: Contact, patch: ContactPatch): SaveSummary {
+  const notesUpdated = patch.notes !== undefined
+  const { name } = before
+  const text =
+    patch.stage && notesUpdated
+      ? `Moved ${name} to ${patch.stage} and updated notes`
+      : patch.stage
+        ? `Moved ${name} to ${patch.stage}`
+        : `Updated notes for ${name}`
+  return { text, name, stage: patch.stage, notesUpdated }
 }
 
 /** The values to restore for exactly the fields that changed. */
