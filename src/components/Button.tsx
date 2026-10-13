@@ -4,13 +4,16 @@ import { cn } from '../lib/cn'
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+  primary:
+    'bg-neutral-900 text-white shadow-[inset_0_1px_0_oklch(1_0_0/0.12),0_1px_2px_oklch(0_0_0/0.2)] hover:bg-neutral-800',
   secondary:
-    'border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 active:bg-neutral-100',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
-  ghost: 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800',
+    'bg-white text-neutral-800 shadow-[inset_0_0_0_1px_var(--color-hairline-strong),0_1px_2px_oklch(0_0_0/0.05)] hover:bg-neutral-50',
+  danger:
+    'bg-red-600 text-white shadow-[inset_0_1px_0_oklch(1_0_0/0.15),0_1px_2px_oklch(0_0_0/0.2)] hover:bg-red-700',
+  ghost: 'text-neutral-600 hover:bg-neutral-900/[0.05] hover:text-neutral-900',
 }
 
+/** Press feedback: a 0.97 scale on :active, the one animation that is welcome on every click. */
 export function Button({
   variant = 'secondary',
   className,
@@ -21,7 +24,8 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors',
+        'inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-[13px] font-medium',
+        'transition-[background-color,scale] duration-150 ease-out active:scale-[0.97]',
         VARIANTS[variant],
         className,
       )}

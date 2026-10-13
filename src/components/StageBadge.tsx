@@ -1,30 +1,28 @@
 import { cn } from '../lib/cn'
-import { STAGE_STYLES } from '../theme'
 import type { Stage } from '../types'
 
 export function StageDot({ stage, className }: { stage: Stage; className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={cn(
-        'inline-block size-2 shrink-0 rounded-full',
-        STAGE_STYLES[stage].dot,
-        className,
-      )}
+      data-tone={stage}
+      className={cn('tone-dot inline-block size-1.5 shrink-0 rounded-full', className)}
     />
   )
 }
 
-export function StageBadge({ stage }: { stage: Stage }) {
+/** Tinted pill with a same-hue hairline ring and a dot, so stage never relies on colour alone. */
+export function StageBadge({ stage, className }: { stage: Stage; className?: string }) {
   return (
     <span
+      data-tone={stage}
       className={cn(
-        'inline-flex h-5 items-center gap-1.5 rounded px-1.5 text-xs font-medium whitespace-nowrap',
-        STAGE_STYLES[stage].chip,
+        'tone-pill inline-flex h-[22px] items-center gap-1.5 rounded-full pr-2 pl-1.5 text-[12.5px] font-medium whitespace-nowrap',
+        className,
       )}
     >
-      <StageDot stage={stage} className="size-1.5" />
-      {stage}
+      <span aria-hidden="true" className="tone-dot size-1.5 rounded-full" />
+      <span className="text-trim">{stage}</span>
     </span>
   )
 }
