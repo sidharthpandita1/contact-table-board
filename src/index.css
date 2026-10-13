@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-flash: oklch(0.95 0.09 95);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-white text-neutral-900 antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  /* One focus style for every interactive element; never removed without a replacement. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-blue-600;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
