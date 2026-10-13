@@ -21,6 +21,25 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
+// Node 25 exposes its own experimental localStorage, which shadows jsdom's and has no
+// working methods unless Node is given a storage file. Swap in an in-memory store.
+if (typeof window.localStorage?.getItem !== 'function') {
+  const store = new Map<string, string>()
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => void store.set(key, String(value)),
+      removeItem: (key: string) => void store.delete(key),
+      clear: () => store.clear(),
+      key: (i: number) => [...store.keys()][i] ?? null,
+      get length() {
+        return store.size
+      },
+    } satisfies Storage,
+  })
+}
+
 // Browser APIs dnd-kit and Motion expect that jsdom lacks.
 class NoopObserver {
   observe() {}
