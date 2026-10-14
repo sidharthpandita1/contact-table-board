@@ -2,7 +2,7 @@
 
 A Notion-style contacts database you can view as a table or a board. Both views read the same data. Open anyone from either view to change their Stage or Notes, then Save or Cancel. On the board you can also drag a card to a new stage.
 
-Live preview: LIVE_URL
+Live preview: https://contact-table-board.vercel.app
 
 ![Dragging a card to Qualified, changing a stage in the panel and watching the card travel, filtering by owner, and searching](docs/demo.gif)
 
